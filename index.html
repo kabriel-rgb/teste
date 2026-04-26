@@ -1,10 +1,117 @@
-<DOCTYPE html>
-<html lang="pt-br">
+<!DOCTYPE html>
+<html lang="pt-BR">
 <head>
-  <meta charset="utf-8">
-  <title>test</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAHUR IA</title>
+    <style>
+        body { margin: 0; font-family: Arial, sans-serif; background: #07111f; color: #00e5ff; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .card { width: 90%; max-width: 700px; background: #0d1b2a; padding: 24px; border-radius: 20px; box-shadow: 0 0 25px rgba(0,229,255,.2); }
+        h1 { text-align: center; margin-top: 0; }
+        #chat { height: 320px; overflow-y: auto; background: #08131f; padding: 12px; border-radius: 12px; margin-bottom: 12px; border: 1px solid #1a2a3a; }
+        .msg { margin: 8px 0; line-height: 1.4; }
+        .user { color: #fff; font-weight: bold; }
+        .bot { color: #00e5ff; }
+        .row { display: flex; gap: 10px; }
+        input { flex: 1; padding: 12px; border-radius: 10px; border: none; background: #1a2a3a; color: #fff; outline: none; }
+        button { padding: 12px 16px; border: none; border-radius: 10px; background: #00e5ff; color: #07111f; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        button:hover { background: #00b8d4; }
+    </style>
 </head>
 <body>
-  <h1>Hello, Wold!</h1>
+
+<div class="card">
+    <h1>SAHUR IA</h1>
+    <div id="chat"></div>
+    <div class="row">
+        <input id="msg" placeholder="Digite sua mensagem..." onkeypress="if(event.key==='Enter') sendMsg()">
+        <button onclick="sendMsg()">Enviar</button>
+        <button onclick="voz()">🎤</button>
+    </div>
+</div>
+
+<script>
+    const chat = document.getElementById('chat');
+    const inputMsg = document.getElementById('msg');
+
+    // Função para adicionar mensagens na tela
+    function add(text, cls) {
+        const d = document.createElement('div');
+        d.className = 'msg ' + cls;
+        d.textContent = text;
+        chat.appendChild(d);
+        chat.scrollTop = chat.scrollHeight;
+    }
+
+    // Função para SAHUR falar
+    function falar(t) {
+        const utterance = new SpeechSynthesisUtterance(t);
+        utterance.lang = 'pt-BR';
+        window.speechSynthesis.speak(utterance);
+    }
+
+    // Lógica de resposta (Local ou API)
+    async function responder(texto) {
+        let respostaSaida = "";
+        
+        // Exemplo de lógica local simples
+        const msgMini = texto.toLowerCase();
+        if (msgMini.includes('oi') || msgMini.includes('olá')) {
+            respostaSaida = "Olá! Eu sou o SAHUR. Como posso ajudar você hoje?";
+        } else {
+            // Tentativa de buscar da sua rota /chat (API)
+            try {
+                let req = await fetch("/chat", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({ msg: texto })
+                });
+                if (req.ok) {
+                    let dados = await req.json();
+                    respostaSaida = dados.resposta;
+                } else {
+                    respostaSaida = "Estou com dificuldades para conectar ao meu servidor.";
+                }
+            } catch (e) {
+                respostaSaida = "Não entendi. Pode repetir?";
+            }
+        }
+
+        add('SAHUR: ' + respostaSaida, 'bot');
+        falar(respostaSaida);
+    }
+
+    // Função principal de envio
+    function sendMsg() {
+        const v = inputMsg.value.trim();
+        if (!v) return;
+
+        add('Você: ' + v, 'user');
+        responder(v);
+        inputMsg.value = '';
+    }
+
+    // Reconhecimento de Voz
+    function voz() {
+        const SpeedRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeedRec) {
+            alert('Seu navegador não suporta reconhecimento de voz');
+            return;
+        }
+        const rec = new SpeedRec();
+        rec.lang = 'pt-BR';
+        rec.onresult = e => {
+            inputMsg.value = e.results[0][0].transcript;
+            sendMsg();
+        };
+        rec.start();
+    }
+
+    // Mensagem de boas-vindas
+    window.onload = () => {
+        add('SAHUR: Olá. Sistema SAHUR online e pronto para iniciar.', 'bot');
+    };
+</script>
+
 </body>
 </html>
