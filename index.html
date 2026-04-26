@@ -111,6 +111,13 @@
     window.onload = () => {
         add('SAHUR: Olá. Sistema SAHUR online e pronto para iniciar.', 'bot');
     };
+
+    // chama o python
+    fetch("https://kabriel-rgb.github.io/teste/", {
+  method: "POST",
+  headers: {"Content-Type":"application/json"},
+  body: JSON.stringify({texto:"oi"})
+})
 </script>
 
 </body>
